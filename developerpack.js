@@ -8,6 +8,5 @@ function developerDispatch(data) {
 }
 
 developerDispatch({
-	action: 'test',
-	value: 'If you see this message, everything is fine!'
-}).then(res => alert(res));
+	action: 'open'
+}).then(res => console.log(res));
