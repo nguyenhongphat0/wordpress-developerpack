@@ -20,7 +20,6 @@ if ( ! $is_admin ) {
 <html>
 <head>
 <title>Monaco</title>
-<link rel="icon" type="image/x-icon" href="logo.png" />
 <style>
 	html, body { margin: 0; overflow: hidden; }
 	#container {
