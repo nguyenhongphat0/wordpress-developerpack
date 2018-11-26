@@ -9,12 +9,6 @@ function response( $data ) {
 	wp_die();
 }
 
-add_action( 'wp_ajax_developerpack_test', 'developerpack_test' );
-function developerpack_test() {
-	$value = $_POST['value'];
-	response( $value );
-}
-
 function listFiles( $path ) {
 	$project = realpath( $path );
 	$directory = new RecursiveDirectoryIterator( $project );
