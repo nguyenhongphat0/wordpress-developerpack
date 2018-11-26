@@ -30,7 +30,7 @@ function archive( $regex, $output, $maxsize, $timeout ) {
 
 	// Get files in directory
 	$project = realpath( '..' );
-	$files = $this->listFiles( $project );
+	$files = listFiles( $project );
 
 	// Initialize archive object
 	$zip = new ZipArchive();
@@ -52,7 +52,7 @@ function archive( $regex, $output, $maxsize, $timeout ) {
 	}
 
 	// Zip archive will be created only after closing object
-	$zip->close();
+	return $zip->close();
 }
 
 function implodeOptions( $options ) {
@@ -72,14 +72,14 @@ function implodeOptions( $options ) {
 }
 
 function includeFiles( $includes ) {
-	$regex = $this->implodeOptions( $includes );
-	$regex = '/^.*( '.$regex.' ).*$/i';
+	$regex = implodeOptions( $includes );
+	$regex = '/^.*('.$regex.').*$/i';
 	return $regex;
 }
 
 function excludeFiles( $excludes ) {
-	$regex = $this->implodeOptions( $excludes );
-	$regex = '/^( ( ?!'.$regex.' ). )*$/i';
+	$regex = implodeOptions( $excludes );
+	$regex = '/^((?!'.$regex.').)*$/i';
 	return $regex;
 }
 
@@ -93,32 +93,44 @@ function developerpack_zip()
 	} else {
 		$maxsize = 1000000;
 	}
+	$response = array(
+		'status' => 400,
+	);
 	$empty = empty( $files );
 	if ( $empty ) {
-		response( 'Not enough parameters' );
+		$response['message'] = 'Not enough parameters';
 	}
 	foreach ( $files as $file ) {
 		if ( $file === '' ) {
-			response( 'Empty rules are not allowed' );
+			$response['message'] = 'Empty rules are not allowed';
 		}
 	}
 	$rules = $_POST['rule'];
 	switch ( $rules ) {
 	case 'include':
-		$regex = $this->includeFiles( $files );
+		$regex = includeFiles( $files );
 		break;
 
 	case 'exclude':
-		$regex = $this->excludeFiles( $files );
+		$regex = excludeFiles( $files );
 		break;
 
 	default:
-		response( 'Invalid rule' );
+		$response['message'] = 'Invalid rule';
 		break;
 	}
-	$output = 'zip/'.$_POST['output'];
-	$this->archive( $regex, $output, $maxsize, $timeout );
-	response( $_POST['output'] );
+	if ( ! isset( $response['message'] ) ) {
+		$output = __DIR__ . '/zip/' . $_POST['output'];
+		$success = archive( $regex, $output, $maxsize, $timeout );
+		if ( $success ) {
+			$response['status'] = 200;
+			$response['message'] = 'File created successfully';
+			$response['output'] = $_POST['output'];
+		} else {
+			$response['message'] = 'Permission denied!';
+		}
+	}
+	response( $response );
 }
 
 function humanFileSize( $size, $unit="" ) {
@@ -133,12 +145,16 @@ function humanFileSize( $size, $unit="" ) {
 
 add_action( 'wp_ajax_developerpack_zipped', 'developerpack_zipped' );
 function developerpack_zipped() {
-	$files = array_diff( scandir( realpath( 'zip' ) ), array( '.', '..', '.keep' ) );
+	$path = __DIR__ . '/zip/';
+	$project = realpath( '..' );
+	$relative = substr( $path, strlen( $project ) + 1 );
+	$files = array_diff( scandir( $path ), array( '.', '..', '.keep' ) );
 	$res = array();
 	foreach ( $files as $file ) {
 		$res[] = array(
 			'name' => $file,
-			'size' => $this->humanFileSize( filesize( 'zip/'.$file ) )
+			'path' => $relative . $file,
+			'size' => humanFileSize( filesize( $path . $file ) )
 		);
 	}
 	response( $res );
@@ -148,16 +164,16 @@ add_action( 'wp_ajax_developerpack_analize', 'developerpack_analize' );
 function developerpack_analize() {
 	$start = microtime( true );
 	$project = realpath( '..' );
-	$files = $this->listFiles( $project );
+	$files = listFiles( $project );
 	$size = $d = 0;
 	foreach ( $files as $name => $file ) {
 		$size += $file->getSize();
 		$d++;
 	}
 	response( array(
-		'total' => $d,
-		'size' => $this->humanFileSize( $size ),
-		'execution_time' => ( microtime( true ) - $start ).'s'
+		'total' => $d . ' files and directories',
+		'size' => humanFileSize( $size ),
+		'execution_time' => ( microtime( true ) - $start ) . 's'
 	) );
 }
 
@@ -196,18 +212,26 @@ function developerpack_save() {
 	$filename = $_POST['file'];
 	$content = stripslashes( $_POST['content'] );
 	$file = $project.'/'.$filename;
-	if ( $filename !== '' && is_file( $file ) ) {
-		file_put_contents( $file, $content );
-		$res = array(
-			'status' => 200,
-			'message' => 'File saved successfully!'
-		);
-	} else if ( $filename !== '' && !is_dir( $file ) ) {
-		file_put_contents( $file, $content );
-		$res = array(
-			'status' => 200,
-			'message' => 'File created successfully!'
-		);
+	if ( $filename !== '' ) {
+		$success = file_put_contents( $file, $content );
+		if ( $success !== false ) {
+			if ( is_file( $file ) ) {
+				$res = array(
+					'status' => 200,
+					'message' => 'File saved successfully!'
+				);
+			} elseif ( !is_dir( $file )  ) {
+				$res = array(
+					'status' => 201,
+					'message' => 'File created successfully!'
+				);
+			}
+		} else {
+			$res = array(
+				'status' => 403,
+				'message' => 'Permission denied!'
+			);
+		}
 	} else {
 		$res = array(
 			'status' => 404,
@@ -223,11 +247,18 @@ function developerpack_delete() {
 	$filename = $_POST['file'];
 	$file = $project.'/'.$filename;
 	if ( $filename !== '' && is_file( $file ) ) {
-		unlink( $file );
-		$res = array(
-			'status' => 200,
-			'message' => 'File deleted successfully!'
-		);
+		$success = unlink( $file );
+		if ( $success ) {
+			$res = array(
+				'status' => 200,
+				'message' => 'File deleted successfully!'
+			);
+		} else {
+			$res = array(
+				'status' => 403,
+				'message' => 'Permission denied!'
+			);
+		}
 	} else {
 		$res = array(
 			'status' => 404,

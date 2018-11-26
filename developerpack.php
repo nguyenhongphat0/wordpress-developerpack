@@ -23,9 +23,11 @@ function developerpack_menu() {
 }
 
 function developerpack_settings_page() {
+	$theme_dir = substr( get_stylesheet_directory(), strlen( realpath( '..' ) ) + 1 );
+	$child_theme_dir = substr( get_template_directory(), strlen( realpath( '..' ) ) + 1 );
 	ob_start();
-	phpinfo();
-	$phpinfo = ob_get_contents();
+		phpinfo();
+		$phpinfo = ob_get_contents();
 	ob_end_clean();
 	require_once( 'template.php' );
 }
