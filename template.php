@@ -205,7 +205,7 @@
 	</script>
 	<div>
 		<h2>Code editing</h2>
-		<p>We use Monaco for code editing. It's a free and opensource javascript text editor with advance feature powered by Microsoft. Click the button below to use Monaco.</p>
+		<p>We use Monaco for code editing. It's a free and opensource javascript text editor with advance feature from Microsoft. Click the button below to use Monaco.</p>
 		<a href="<?php echo plugins_url( '/monaco.php', __FILE__ ); ?>" target="_blank" class="button button-primary">Monaco</a>
 	</div>
 </div>

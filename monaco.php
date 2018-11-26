@@ -95,10 +95,6 @@ if ( ! $is_admin ) {
 <body>
 	<div id="container"></div>
 	<div id="tools">
-		<div id="left">
-			<span>Powered by </span>
-			<img src="https://opensource.microsoft.com/img/microsoft.png" alt="">
-		</div>
 		<div id="right">
 			<input type="text" id="file" onkeyup="monacoEnter(event)">
 			<button onclick="monacoOpen()">Open</button>
