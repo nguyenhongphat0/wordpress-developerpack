@@ -114,7 +114,7 @@ function developerpack_zip()
 		break;
 	}
 	if ( ! isset( $response['message'] ) ) {
-		$output = __DIR__ . '/zip/' . $_POST['output'];
+		$output = dirname( __FILE__ ) . '/zip/' . $_POST['output'];
 		$success = archive( $regex, $output, $maxsize, $timeout );
 		if ( $success ) {
 			$response['status'] = 200;
@@ -139,7 +139,7 @@ function humanFileSize( $size, $unit="" ) {
 
 add_action( 'wp_ajax_developerpack_zipped', 'developerpack_zipped' );
 function developerpack_zipped() {
-	$path = __DIR__ . '/zip/';
+	$path = dirname( __FILE__ ) . '/zip/';
 	$project = realpath( '..' );
 	$relative = substr( $path, strlen( $project ) + 1 );
 	$files = array_diff( scandir( $path ), array( '.', '..', '.keep' ) );
