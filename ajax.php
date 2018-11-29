@@ -114,7 +114,9 @@ function developerpack_zip()
 		break;
 	}
 	if ( ! isset( $response['message'] ) ) {
-		$output = dirname( __FILE__ ) . '/zip/' . $_POST['output'];
+		$zippath = dirname( __FILE__ ) . '/zip/';
+		mkdir( $zippath );
+		$output = $zippath . $_POST['output'];
 		$success = archive( $regex, $output, $maxsize, $timeout );
 		if ( $success ) {
 			$response['status'] = 200;
@@ -142,7 +144,7 @@ function developerpack_zipped() {
 	$path = dirname( __FILE__ ) . '/zip/';
 	$project = realpath( '..' );
 	$relative = substr( $path, strlen( $project ) + 1 );
-	$files = array_diff( scandir( $path ), array( '.', '..', '.keep' ) );
+	$files = array_diff( scandir( $path ), array( '.', '..' ) );
 	$res = array();
 	foreach ( $files as $file ) {
 		$res[] = array(

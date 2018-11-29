@@ -24,6 +24,7 @@ function developerpack_menu() {
 }
 
 function developerpack_settings_page() {
+	$developerpack_dir = plugins_url( '', __FILE__ );
 	$theme_dir = substr( get_stylesheet_directory(), strlen( realpath( '..' ) ) + 1 );
 	$child_theme_dir = substr( get_template_directory(), strlen( realpath( '..' ) ) + 1 );
 	ob_start();
