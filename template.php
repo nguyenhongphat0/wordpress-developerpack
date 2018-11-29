@@ -80,9 +80,8 @@
 	.monaco {
 		margin: 0;
 		overflow: hidden;
-		margin-left: -20px;
-		width: calc(100% + 40px);
-		float: left;
+		/* margin-left: -20px; */
+		/* width: calc(100% + 40px); */
 	}
 	.monaco #zip-options {
 		height: 200px;
@@ -109,6 +108,9 @@
 	}
 	.monaco #tools #right > * {
 		float: left;
+	}
+	.monaco #tools #monaco-url {
+		margin: 0px;
 	}
 	.monaco #tools button {
 		background-color: #2d89ef;
