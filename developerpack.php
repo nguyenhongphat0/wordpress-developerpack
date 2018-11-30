@@ -10,6 +10,8 @@
  * Version:      1.0.0
  */
 
+if ( ! defined( 'ABSPATH'  )  ) exit;
+
 add_action( 'init', 'developerpack_ajax' );
 function developerpack_ajax() {
 	$is_admin = current_user_can( 'administrator' );

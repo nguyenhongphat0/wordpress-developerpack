@@ -3,20 +3,21 @@
  *  @author nguyenhongphat0 <nguyenhongphat28121998@gmail.com>
  *  @license https://www.gnu.org/licenses/gpl-3.0.html GPL-3.0
  */
+if ( ! defined( 'ABSPATH'  )  ) exit;
 
-function response( $data ) {
+function developerpack_response( $data ) {
 	echo json_encode( $data );
 	wp_die();
 }
 
-function listFiles( $path ) {
+function developerpack_list_files( $path ) {
 	$project = realpath( $path );
 	$directory = new RecursiveDirectoryIterator( $project );
 	$files = new RecursiveIteratorIterator( $directory, RecursiveIteratorIterator::LEAVES_ONLY );
 	return $files;
 }
 
-function archive( $regex, $output, $maxsize, $timeout ) {
+function developerpack_archive( $regex, $output, $maxsize, $timeout ) {
 	// Extend excecute limit
 	if ( isset( $timeout ) ) {
 		set_time_limit( $timeout );
@@ -24,7 +25,7 @@ function archive( $regex, $output, $maxsize, $timeout ) {
 
 	// Get files in directory
 	$project = realpath( '..' );
-	$files = listFiles( $project );
+	$files = developerpack_list_files( $project );
 
 	// Initialize archive object
 	$zip = new ZipArchive();
@@ -49,7 +50,7 @@ function archive( $regex, $output, $maxsize, $timeout ) {
 	return $zip->close();
 }
 
-function implodeOptions( $options ) {
+function developerpack_implodeOptions( $options ) {
 	function escape( $path )
 	{
 		$project = realpath( '..' );
@@ -65,14 +66,14 @@ function implodeOptions( $options ) {
 	return $regex;
 }
 
-function includeFiles( $includes ) {
-	$regex = implodeOptions( $includes );
+function developerpack_includeFiles( $includes ) {
+	$regex = developerpack_implodeOptions( $includes );
 	$regex = '/^.*('.$regex.').*$/i';
 	return $regex;
 }
 
-function excludeFiles( $excludes ) {
-	$regex = implodeOptions( $excludes );
+function developerpack_excludeFiles( $excludes ) {
+	$regex = developerpack_implodeOptions( $excludes );
 	$regex = '/^((?!'.$regex.').)*$/i';
 	return $regex;
 }
@@ -102,11 +103,11 @@ function developerpack_zip()
 	$rules = $_POST['rule'];
 	switch ( $rules ) {
 	case 'include':
-		$regex = includeFiles( $files );
+		$regex = developerpack_includeFiles( $files );
 		break;
 
 	case 'exclude':
-		$regex = excludeFiles( $files );
+		$regex = developerpack_excludeFiles( $files );
 		break;
 
 	default:
@@ -117,7 +118,7 @@ function developerpack_zip()
 		$zippath = dirname( __FILE__ ) . '/zip/';
 		mkdir( $zippath );
 		$output = $zippath . $_POST['output'];
-		$success = archive( $regex, $output, $maxsize, $timeout );
+		$success = developerpack_archive( $regex, $output, $maxsize, $timeout );
 		if ( $success ) {
 			$response['status'] = 200;
 			$response['message'] = 'File created successfully';
@@ -126,10 +127,10 @@ function developerpack_zip()
 			$response['message'] = 'Permission denied!';
 		}
 	}
-	response( $response );
+	developerpack_response( $response );
 }
 
-function humanFileSize( $size, $unit="" ) {
+function developerpack_human_file_size( $size, $unit="" ) {
 	if( ( !$unit && $size >= 1<<30 ) || $unit == "GB" )
 		return number_format( $size/( 1<<30 ),2 )." GB";
 	if( ( !$unit && $size >= 1<<20 ) || $unit == "MB" )
@@ -150,25 +151,25 @@ function developerpack_zipped() {
 		$res[] = array(
 			'name' => $file,
 			'path' => $relative . $file,
-			'size' => humanFileSize( filesize( $path . $file ) )
+			'size' => developerpack_human_file_size( filesize( $path . $file ) )
 		);
 	}
-	response( $res );
+	developerpack_response( $res );
 }
 
 add_action( 'wp_ajax_developerpack_analize', 'developerpack_analize' );
 function developerpack_analize() {
 	$start = microtime( true );
 	$project = realpath( '..' );
-	$files = listFiles( $project );
+	$files = developerpack_list_files( $project );
 	$size = $d = 0;
 	foreach ( $files as $name => $file ) {
 		$size += $file->getSize();
 		$d++;
 	}
-	response( array(
+	developerpack_response( array(
 		'total' => $d . ' files and directories',
-		'size' => humanFileSize( $size ),
+		'size' => developerpack_human_file_size( $size ),
 		'execution_time' => ( microtime( true ) - $start ) . 's'
 	) );
 }
@@ -199,7 +200,7 @@ function developerpack_open() {
 	$res['pwd'] = $file;
 	$ls = scandir( $file );
 	$res['ls'] = $ls;
-	response( $res );
+	developerpack_response( $res );
 }
 
 add_action( 'wp_ajax_developerpack_save', 'developerpack_save' );
@@ -234,7 +235,7 @@ function developerpack_save() {
 			'message' => 'Error saving file!'
 		);
 	}
-	response( $res );
+	developerpack_response( $res );
 }
 
 add_action( 'wp_ajax_developerpack_delete', 'developerpack_delete' );
@@ -261,5 +262,5 @@ function developerpack_delete() {
 			'message' => 'Nothing has been deleted!'
 		);
 	}
-	response( $res );
+	developerpack_response( $res );
 }

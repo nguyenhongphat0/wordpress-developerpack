@@ -1,3 +1,5 @@
+<?php if ( ! defined( 'ABSPATH'  )  ) exit; ?>
+
 <div class="wrap">
 	<h1>Developer Pack</h1>
 	<div>
@@ -59,7 +61,10 @@
 	</div>
 	<div>
 		<h2>Code editing</h2>
-		<p>We use Monaco for code editing. It's a free and opensource javascript text editor with advance feature from Microsoft.</p>
+		<p>
+			Please open your <b>Browser Console</b> to see editor's action result. If you don't know how to open browser console, then google it. F12 will work on some browser!<br>
+			We use Monaco for code editing. It's a free and opensource javascript text editor with advance feature from Microsoft.
+		</p>
 		<div class="monaco">
 			<div id="diff"></div>
 			<div id="tools">
@@ -334,7 +339,7 @@
 			return re.exec(filename)[1];
 		}
 		file = '';
-		function monacoOpen() {
+		function monacoOpen(setModified = true) {
 			file = $('#monaco-url').val();
 			developerDispatch({
 			action: 'open',
@@ -343,7 +348,9 @@
 			if (data.status == 200) {
 				$('#monaco-url').attr('class', '');
 				diffEditor.getOriginalEditor().setValue(data.content);
-				diffEditor.getModifiedEditor().setValue(data.content);
+				if (setModified) {
+					diffEditor.getModifiedEditor().setValue(data.content);
+				}
 			} else if (data.status == 204) {
 				$('#monaco-url').attr('class', 'warning');
 				diffEditor.getOriginalEditor().setValue('');
@@ -372,7 +379,7 @@
 							action: 'delete',
 							file
 						}).then(data => {
-							monacoOpen();
+							monacoOpen(false);
 							alert(data.message);
 						});
 					}
@@ -390,7 +397,7 @@
 			}).then(data => {
 			if (data.status == 200) {
 				$('#monaco-url').attr('class', 'success');
-				monacoOpen();
+				monacoOpen(false);
 				alert(data.message);
 			} else {
 				$('#monaco-url').attr('class', 'error');
