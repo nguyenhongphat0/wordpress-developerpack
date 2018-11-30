@@ -178,7 +178,7 @@ function developerpack_analize() {
 add_action( 'wp_ajax_developerpack_open', 'developerpack_open' );
 function developerpack_open() {
 	$project = realpath( '..' );
-	$filename = sanitize_file_name( $_POST['file'] );
+	$filename = wp_normalize_path( $_POST['file'] );
 	$file = $project.'/'.$filename;
 	$res = array(
 		'status' => 404,
@@ -207,7 +207,7 @@ function developerpack_open() {
 add_action( 'wp_ajax_developerpack_save', 'developerpack_save' );
 function developerpack_save() {
 	$project = realpath( '..' );
-	$filename = sanitize_file_name( $_POST['file'] );
+	$filename = wp_normalize_path( $_POST['file'] );
 	$content = stripslashes( $_POST['content'] );
 	$file = $project.'/'.$filename;
 	if ( $filename !== '' ) {
@@ -242,7 +242,7 @@ function developerpack_save() {
 add_action( 'wp_ajax_developerpack_delete', 'developerpack_delete' );
 function developerpack_delete() {
 	$project = realpath( '..' );
-	$filename = sanitize_file_name ( $_POST['file'] );
+	$filename = wp_normalize_path ( $_POST['file'] );
 	$file = $project.'/'.$filename;
 	if ( $filename !== '' && is_file( $file ) ) {
 		$success = unlink( $file );
