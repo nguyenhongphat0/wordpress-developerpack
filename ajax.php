@@ -50,7 +50,7 @@ function developerpack_archive( $regex, $output, $maxsize, $timeout ) {
 	return $zip->close();
 }
 
-function developerpack_implodeOptions( $options ) {
+function developerpack_implode_options( $options ) {
 	function escape( $path )
 	{
 		$project = realpath( '..' );
@@ -66,14 +66,14 @@ function developerpack_implodeOptions( $options ) {
 	return $regex;
 }
 
-function developerpack_includeFiles( $includes ) {
-	$regex = developerpack_implodeOptions( $includes );
+function developerpack_include_files( $includes ) {
+	$regex = developerpack_implode_options( $includes );
 	$regex = '/^.*('.$regex.').*$/i';
 	return $regex;
 }
 
-function developerpack_excludeFiles( $excludes ) {
-	$regex = developerpack_implodeOptions( $excludes );
+function developerpack_exclude_files( $excludes ) {
+	$regex = developerpack_implode_options( $excludes );
 	$regex = '/^((?!'.$regex.').)*$/i';
 	return $regex;
 }
@@ -81,18 +81,19 @@ function developerpack_excludeFiles( $excludes ) {
 add_action( 'wp_ajax_developerpack_zip', 'developerpack_zip' );
 function developerpack_zip()
 {
-	$files = $_POST['files'];
-	$timeout = $_POST['timeout'];
-	if ( isset( $_POST['maxsize'] ) ) {
-		$maxsize = $_POST['maxsize'];
-	} else {
-		$maxsize = 1000000;
-	}
 	$response = array(
 		'status' => 400,
 	);
+	$timeout = absint( $_POST['timeout'] );
+	if ( isset( $_POST['maxsize'] ) ) {
+		$maxsize = absint( $_POST['maxsize'] );
+	} else {
+		$maxsize = 1000000;
+	}
+	$files = $_POST['files'];
 	$empty = empty( $files );
-	if ( $empty ) {
+	$not_array = ! is_array( $files );
+	if ( $empty || $not_array) {
 		$response['message'] = 'Not enough parameters';
 	}
 	foreach ( $files as $file ) {
@@ -103,11 +104,11 @@ function developerpack_zip()
 	$rules = $_POST['rule'];
 	switch ( $rules ) {
 	case 'include':
-		$regex = developerpack_includeFiles( $files );
+		$regex = developerpack_include_files( $files );
 		break;
 
 	case 'exclude':
-		$regex = developerpack_excludeFiles( $files );
+		$regex = developerpack_exclude_files( $files );
 		break;
 
 	default:
@@ -177,14 +178,14 @@ function developerpack_analize() {
 add_action( 'wp_ajax_developerpack_open', 'developerpack_open' );
 function developerpack_open() {
 	$project = realpath( '..' );
-	$filename = $_POST['file'];
+	$filename = sanitize_file_name( $_POST['file'] );
 	$file = $project.'/'.$filename;
 	$res = array(
 		'status' => 404,
 		'message' => 'List directory success'
 	);
 	if ( $filename !== '' && is_file( $file ) ) {
-		$file = $project.'/'.$_POST['file'];
+		$file = $project.'/' . $filename;
 		$res['content'] = file_get_contents( $file );
 		$res['status'] = 200;
 		$res['message'] = 'OK';
@@ -206,7 +207,7 @@ function developerpack_open() {
 add_action( 'wp_ajax_developerpack_save', 'developerpack_save' );
 function developerpack_save() {
 	$project = realpath( '..' );
-	$filename = $_POST['file'];
+	$filename = sanitize_file_name( $_POST['file'] );
 	$content = stripslashes( $_POST['content'] );
 	$file = $project.'/'.$filename;
 	if ( $filename !== '' ) {
@@ -241,7 +242,7 @@ function developerpack_save() {
 add_action( 'wp_ajax_developerpack_delete', 'developerpack_delete' );
 function developerpack_delete() {
 	$project = realpath( '..' );
-	$filename = $_POST['file'];
+	$filename = sanitize_file_name ( $_POST['file'] );
 	$file = $project.'/'.$filename;
 	if ( $filename !== '' && is_file( $file ) ) {
 		$success = unlink( $file );
